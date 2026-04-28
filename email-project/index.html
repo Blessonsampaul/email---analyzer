@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Email Analyzer</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial;
+            overflow: hidden;
+        }
+
+        /* 🌌 Animated background */
+        body::before {
+            content: "";
+            position: fixed;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, #6a11cb, #2575fc, #ff6a00, #ff00cc);
+            background-size: 400% 400%;
+            animation: bgMove 10s infinite ease;
+            z-index: -1;
+        }
+
+        @keyframes bgMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Center layout */
+        .wrapper {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Glass card */
+        .box {
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(12px);
+            padding: 25px;
+            border-radius: 20px;
+            width: 350px;
+            text-align: center;
+            color: white;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            animation: fadeIn 1s ease;
+        }
+
+        input {
+            width: 90%;
+            padding: 10px;
+            border-radius: 10px;
+            border: none;
+            margin-bottom: 10px;
+            outline: none;
+        }
+
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 10px;
+            background: #00c6ff;
+            color: white;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            transform: scale(1.1);
+            background: #0072ff;
+        }
+
+        button:active {
+            transform: scale(0.9);
+        }
+
+        #result {
+            margin-top: 15px;
+            text-align: left;
+            min-height: 60px;
+        }
+
+        /* Result card animation */
+        .card {
+            background: rgba(255,255,255,0.25);
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            animation: slideUp 0.5s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="wrapper">
+    <div class="box">
+        <h2>Email Analyzer 🚀</h2>
+
+        <input type="text" id="email" placeholder="Enter email or text">
+        <br>
+        <button onclick="analyze()">Analyze</button>
+
+        <div id="result"></div>
+    </div>
+</div>
+
+<script>
+// ⌨️ Typing effect
+function typeText(element, text, speed = 20) {
+    element.innerHTML = "";
+    let i = 0;
+
+    function typing() {
+        if (i < text.length) {
+            element.innerHTML += text.charAt(i);
+            i++;
+            setTimeout(typing, speed);
+        }
+    }
+    typing();
+}
+
+function analyze() {
+    let text = document.getElementById("email").value;
+    let resultBox = document.getElementById("result");
+
+    resultBox.innerHTML = "⏳ Processing...";
+
+    fetch("http://127.0.0.1:5000/extract", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ email: text })
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        resultBox.innerHTML = "";
+
+        if (data.error) {
+            typeText(resultBox, "❌ " + data.error);
+            return;
+        }
+
+        data.results.forEach(item => {
+            let div = document.createElement("div");
+            div.className = "card";
+
+            let content =
+                "📧 " + item.email + "\n" +
+                "👤 " + item.username + "\n" +
+                "🌐 " + item.domain + "\n" +
+                "🏷 " + item.website + "\n" +
+                "📌 " + item.extension;
+
+            div.innerHTML = content.replace(/\n/g, "<br>");
+            resultBox.appendChild(div);
+        });
+    });
+}
+</script>
+
+</body>
+</html>
